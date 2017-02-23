@@ -78,7 +78,8 @@ def eliminate(values):
     for box, value in values.items():
         if len(value) == 1:
             for p in peers[box]:
-                values[p] = values[p].replace(value, "")
+                assign_value(values, p, values[p].replace(value, ""))
+                # values[p] = values[p].replace(value, "")
 
     return values
 
@@ -88,7 +89,8 @@ def only_choice(values):
         for digit in '123456789':
             dplaces = [box for box in unit if digit in values[box]]
             if len(dplaces) == 1:
-                values[dplaces[0]] = digit
+                assign_value(values, dplaces[0], digit)
+                # values[dplaces[0]] = digit
     return values
 
 
@@ -129,7 +131,7 @@ def search(values):
     stop = False
     while not stop:
         for box in unsolved_values:
-            if len(values[box] == threshold):
+            if len(values[box]) == threshold:
                 nextBox = box
                 unsolved_values.remove(nextBox)
                 stop = True
@@ -139,10 +141,13 @@ def search(values):
     # Now use recursion to solve each one of the resulting sudokus, and if one returns a value (not False), return that answer!
     originalValues = values[nextBox]
     for value in originalValues:
-        values[nextBox] = value
+        assign_value(values, nextBox, value)
+        # values[nextBox] = value
         result = search(values.copy())
         if (result):
             return result
+
+    return False
 
 
 def solve(grid):
@@ -154,11 +159,16 @@ def solve(grid):
     Returns:
         The dictionary representation of the final sudoku grid. False if no solution exists.
     """
+    values = grid_values(grid)
+    return search(values)
 
 
 if __name__ == '__main__':
     diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
-    display(solve(diag_sudoku_grid))
+    easy_grid = '..3.2.6..9..3.5..1..18.64....81.29..7.......8..67.82....26.95..8..2.3..9..5.1.3..'
+    hard_grid = '4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......'
+
+    display(solve(easy_grid))
 
     try:
         from visualize import visualize_assignments
