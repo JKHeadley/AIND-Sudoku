@@ -1,5 +1,6 @@
 assignments = []
 
+
 def assign_value(values, box, value):
     """
     Please use this function to update your values dictionary!
@@ -9,6 +10,7 @@ def assign_value(values, box, value):
     if len(value) == 1:
         assignments.append(values.copy())
     return values
+
 
 def naked_twins(values):
     """Eliminate values using the naked twins strategy.
@@ -22,9 +24,11 @@ def naked_twins(values):
     # Find all instances of naked twins
     # Eliminate the naked twins as possibilities for their peers
 
+
 def cross(A, B):
-    "Cross product of elements in A and elements in B."
+    """Cross product of elements in A and elements in B."""
     return [s + t for s in A for t in B]
+
 
 rows = 'ABCDEFGHI'
 cols = '123456789'
@@ -33,10 +37,11 @@ boxes = cross(rows, cols)
 
 row_units = [cross(r, cols) for r in rows]
 column_units = [cross(rows, c) for c in cols]
-square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
+square_units = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')]
 unitlist = row_units + column_units + square_units
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
-peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
+peers = dict((s, set(sum(units[s], [])) - set([s])) for s in boxes)
+
 
 def grid_values(grid):
     """
@@ -53,6 +58,7 @@ def grid_values(grid):
     filled = dict((key, '123456789') if value in '.' else (key, value) for key, value in empty.items())
     return filled
 
+
 def display(values):
     """
     Display the values as a 2-D grid.
@@ -67,6 +73,7 @@ def display(values):
         if r in 'CF': print(line)
     return
 
+
 def eliminate(values):
     for box, value in values.items():
         if len(value) == 1:
@@ -75,6 +82,7 @@ def eliminate(values):
 
     return values
 
+
 def only_choice(values):
     for unit in unitlist:
         for digit in '123456789':
@@ -82,6 +90,7 @@ def only_choice(values):
             if len(dplaces) == 1:
                 values[dplaces[0]] = digit
     return values
+
 
 def reduce_puzzle(values):
     stalled = False
@@ -102,11 +111,12 @@ def reduce_puzzle(values):
             return False
     return values
 
+
 def search(values):
-    "Using depth-first search and propagation, create a search tree and solve the sudoku."
+    """Using depth-first search and propagation, create a search tree and solve the sudoku."""
     # First, reduce the puzzle using the previous function
     values = reduce_puzzle(values)
-    if (values == False):
+    if values is False:
         return False
 
     unsolved_values = [box for box in values.keys() if len(values[box]) > 1]
@@ -119,7 +129,7 @@ def search(values):
     stop = False
     while not stop:
         for box in unsolved_values:
-            if (len(values[box]) == threshold):
+            if len(values[box] == threshold):
                 nextBox = box
                 unsolved_values.remove(nextBox)
                 stop = True
@@ -134,6 +144,7 @@ def search(values):
         if (result):
             return result
 
+
 def solve(grid):
     """
     Find the solution to a Sudoku grid.
@@ -144,12 +155,14 @@ def solve(grid):
         The dictionary representation of the final sudoku grid. False if no solution exists.
     """
 
+
 if __name__ == '__main__':
     diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
     display(solve(diag_sudoku_grid))
 
     try:
         from visualize import visualize_assignments
+
         visualize_assignments(assignments)
 
     except SystemExit:
