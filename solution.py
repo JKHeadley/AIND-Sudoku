@@ -105,8 +105,9 @@ def naked_twins(values):
     def reduce_peers(unit, twin_box):
         twin_values = values[twin_box]
         for box in unit:
-            if twin_values in values[box] and values[box] != twin_values:
-                assign_value(values, box, values[box].replace(twin_values, ""))
+            for value in twin_values:
+                if value in values[box] and values[box] != twin_values:
+                    assign_value(values, box, values[box].replace(value, ""))
 
 
     # Find all instances of naked twins
