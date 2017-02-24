@@ -27,7 +27,10 @@ boxes = cross(rows, cols)
 row_units = [cross(r, cols) for r in rows]
 column_units = [cross(rows, c) for c in cols]
 square_units = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')]
-unitlist = row_units + column_units + square_units
+diagonal_units = [['A1', 'B2', 'C3', 'D4', 'E5', 'F6', 'G7', 'H8', 'I9'], ['A9', 'B8', 'C7', 'D6', 'E5', 'F4', 'G3', 'H2', 'I1']]
+unitlist = row_units + column_units + square_units + diagonal_units
+# unitlist = row_units + column_units + square_units
+
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
 peers = dict((s, set(sum(units[s], [])) - set([s])) for s in boxes)
 
@@ -178,8 +181,8 @@ def search(values):
 
     return False
 
-# @do_cprofile
-@do_profile(follow=[reduce_puzzle, naked_twins, only_choice, eliminate])
+@do_cprofile
+# @do_profile(follow=[reduce_puzzle, naked_twins, only_choice, eliminate])
 def solve(grid):
     """
     Find the solution to a Sudoku grid.
@@ -198,7 +201,7 @@ if __name__ == '__main__':
     easy_grid = '..3.2.6..9..3.5..1..18.64....81.29..7.......8..67.82....26.95..8..2.3..9..5.1.3..'
     hard_grid = '4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......'
 
-    display(solve(hard_grid))
+    display(solve(diag_sudoku_grid))
 
     try:
         from visualize import visualize_assignments

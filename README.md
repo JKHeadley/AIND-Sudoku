@@ -3,11 +3,13 @@
 
 # Question 1 (Naked Twins)
 Q: How do we use constraint propagation to solve the naked twins problem?  
-A: *Student should provide answer here*
+A: Each time we eliminate value options through matching pairs, we increase the number of constraints on the board. We
+also possibly reveal more naked twins which can be used to further reduce options and increase constraints.
 
 # Question 2 (Diagonal Sudoku)
 Q: How do we use constraint propagation to solve the diagonal sudoku problem?  
-A: *Student should provide answer here*
+A: We add new constraints via the diagonal units and apply the same value reducing techniques as before. Adding the
+diagonal unit constraints actually speeds up the algorithm since it is reducing the number of possible solutions.
 
 ### Install
 
