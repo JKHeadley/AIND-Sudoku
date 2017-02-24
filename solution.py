@@ -159,6 +159,129 @@ def naked_twins(values):
     return values
 
 
+def naked_chain(values):
+    """Eliminate values using the naked chain strategy.
+        Args:
+            values(dict): a dictionary of the form {'box_name': '123456789', ...}
+
+        Returns:
+            the values dictionary with the naked chain eliminated from peers.
+    """
+    def find_chain(unit, first_box):
+        """Given a unit and a box with two values, try to find a chain of boxes.
+            Args:
+                unit(array): an array containing the boxes for a single unit.
+                box(string): a box with two values.
+
+            Returns:
+                a chain of boxes if one is found, False if no chain is found.
+        """
+        assert len(values[first_box]) == 2, "box must only have two values"
+
+        chain = []
+        chain.extend([first_box])
+
+        def can_chain(box):
+            """Check if a box could potentially be part of a chain.
+                Args:
+                    box(string): a box with two values.
+
+                Returns:
+                    True if the box fits the chain, False if it doesn't.
+            """
+            for value in values[box]:
+                for chain_box in chain:
+                    # A box fits the chain if one of its values can be found in another box in the chain
+                    if value in values[chain_box] and values[box] != values[chain_box]:
+                        return True
+
+            return False
+
+        def verify_chain():
+            """Verifies that the current chain is valid.
+                Returns:
+                    True if the chain is valid, False if not.
+            """
+
+            for box in chain:
+                for value in values[box]:
+                    match = 0
+                    for review_box in chain:
+                        if review_box != box and value in values[review_box]:
+                            match += 1
+                            # If any value in the chain has more than one match, the chain is invalid
+                            if match > 1:
+                                return False
+                    # If any value in the chain doesn't have a match, the chain is invalid
+                    if match == 0:
+                        return False
+
+            return True
+
+        def clean_chain():
+            """Removes extra boxes from the chain.
+            """
+            remove_boxes = []
+            for box in chain:
+                for value in values[box]:
+                    match = 0
+                    for review_box in chain:
+                        if review_box != box and value in values[review_box]:
+                            match += 1
+                    # If a value doesn't have a match, remove the box
+                    if match == 0:
+                        remove_boxes.extend([box])
+
+            for box in remove_boxes:
+                chain.remove(box)
+
+            pass
+
+        for box in unit:
+            if len(values[box]) == 2 and box not in chain and can_chain(box):
+                chain.extend([box])
+                if len(chain) > 2 and verify_chain():
+                    return chain
+
+        # Check if the chain has extra boxes that could be removed.
+        if len(chain) > 3:
+            clean_chain()
+            if len(chain) > 2 and verify_chain():
+                return chain
+
+        return False
+
+    def reduce_peers(unit, chain):
+        """Given a unit and a box with a chain, remove the chain values from the remaining unit.
+            Args:
+                unit(array): an array containing the boxes for a single unit.
+                chain_box(string): a box with two values that has a chain.
+        """
+        chain_values = []
+        for box in chain:
+            for value in values[box]:
+                chain_values.extend([value])
+        chain_values = set(chain_values)
+        for box in unit:
+            if box not in chain:
+                for value in chain_values:
+                    if value in values[box]:
+                        assign_value(values, box, values[box].replace(value, ""))
+
+        pass
+
+    # Find all instances of naked chains
+    # Eliminate the naked chains as possibilities for their unit peers
+    for unit in unitlist:
+        for box in unit:
+            if len(values[box]) == 2:
+                chain = find_chain(unit, box)
+                if chain:
+                    reduce_peers(unit, chain)
+
+    return values
+
+
 def reduce_puzzle(values):
     stalled = False
     while not stalled:
@@ -168,6 +291,9 @@ def reduce_puzzle(values):
         values = eliminate(values)
 
         values = only_choice(values)
+
+        # This strategy can reduce the total iterations required, but is generally so expensive that no time is saved
+        values = naked_chain(values)
 
         values = naked_twins(values)
 
@@ -218,8 +344,7 @@ def search(values):
     return False
 
 
-@do_cprofile
-# @do_profile(follow=[reduce_puzzle, naked_twins, only_choice, eliminate])
+@do_profile(follow=[reduce_puzzle, naked_chain, naked_twins, only_choice, eliminate])
 def solve(grid):
     """Find the solution to a Sudoku grid.
         Args:
@@ -236,6 +361,7 @@ if __name__ == '__main__':
     diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
     easy_grid = '..3.2.6..9..3.5..1..18.64....81.29..7.......8..67.82....26.95..8..2.3..9..5.1.3..'
     hard_grid = '4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......'
+    very_hard_grid = '...6..2..8.4.3.........9...4.5.....771.........3.5...83...7...4.....19.....2...6.'
 
     display(solve(diag_sudoku_grid))
 
