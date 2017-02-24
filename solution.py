@@ -1,3 +1,5 @@
+from profilers import *
+
 assignments = []
 
 
@@ -10,19 +12,6 @@ def assign_value(values, box, value):
     if len(value) == 1:
         assignments.append(values.copy())
     return values
-
-
-def naked_twins(values):
-    """Eliminate values using the naked twins strategy.
-    Args:
-        values(dict): a dictionary of the form {'box_name': '123456789', ...}
-
-    Returns:
-        the values dictionary with the naked twins eliminated from peers.
-    """
-
-    # Find all instances of naked twins
-    # Eliminate the naked twins as possibilities for their peers
 
 
 def cross(A, B):
@@ -94,6 +83,43 @@ def only_choice(values):
     return values
 
 
+def naked_twins(values):
+    """Eliminate values using the naked twins strategy.
+    Args:
+        values(dict): a dictionary of the form {'box_name': '123456789', ...}
+
+    Returns:
+        the values dictionary with the naked twins eliminated from peers.
+    """
+
+    def find_twin(unit, box):
+        for twin_box in unit:
+            if twin_box != box and values[twin_box] == values[box]:
+                return twin_box
+        return False
+
+
+    def reduce_peers(unit, twin_box):
+        twin_values = values[twin_box]
+        for box in unit:
+            if twin_values in values[box] and values[box] != twin_values:
+                assign_value(values, box, values[box].replace(twin_values, ""))
+
+
+    # Find all instances of naked twins
+    # Eliminate the naked twins as possibilities for their unit peers
+    for unit in unitlist:
+        naked_twins_discovered = []
+        for box in unit:
+            if box not in naked_twins_discovered and len(values[box]) == 2:
+                twin_box = find_twin(unit, box)
+                if twin_box:
+                    naked_twins_discovered.extend([box, twin_box])
+                    reduce_peers(unit, twin_box)
+
+    return values
+
+
 def reduce_puzzle(values):
     stalled = False
     while not stalled:
@@ -103,6 +129,8 @@ def reduce_puzzle(values):
         values = eliminate(values)
 
         values = only_choice(values)
+
+        values = naked_twins(values)
 
         # Check how many boxes have a determined value, to compare
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
@@ -117,6 +145,7 @@ def reduce_puzzle(values):
 def search(values):
     """Using depth-first search and propagation, create a search tree and solve the sudoku."""
     # First, reduce the puzzle using the previous function
+
     values = reduce_puzzle(values)
     if values is False:
         return False
@@ -149,7 +178,8 @@ def search(values):
 
     return False
 
-
+# @do_cprofile
+@do_profile(follow=[reduce_puzzle, naked_twins, only_choice, eliminate])
 def solve(grid):
     """
     Find the solution to a Sudoku grid.
@@ -168,7 +198,7 @@ if __name__ == '__main__':
     easy_grid = '..3.2.6..9..3.5..1..18.64....81.29..7.......8..67.82....26.95..8..2.3..9..5.1.3..'
     hard_grid = '4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......'
 
-    display(solve(easy_grid))
+    display(solve(hard_grid))
 
     try:
         from visualize import visualize_assignments
